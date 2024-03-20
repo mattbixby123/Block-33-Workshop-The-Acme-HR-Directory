@@ -14,7 +14,7 @@ app.get('/api/employees', async (req, res, next) => {
   try {
     const SQL = /*sql*/ 
       `
-      SELECT * from emlpoyees
+      SELECT * FROM employees
       `;
     const response = await client.query(SQL);
     res.send(response.rows);
@@ -38,11 +38,59 @@ app.get('/api/departments', async (req, res, next) => {
 });
 
 // POST /api/employees - payload: the employee to create, returns the created employee
-
+app.post('/api/employees', async (req,res,next) => {
+  try {
+    const SQL = /*sql*/
+    `
+    INSERT INTO employees(name, department_id) VALUES($1, $2) RETURNING *
+    `;
+    const response = await client.query(SQL, [req.body.name, req.body.department_id]);
+    res.send(response.rows[0]);
+  } catch (ex) {
+    next(ex)
+  }
+});
 
 // DELETE /api/employees/:id - the id of the employee to delete is passed in the URL, returns nothing
+app.delete('/api/employees/:id', async (req, res, next) => {
+  try {
+    const SQL = /*sql*/
+    `
+    DELETE from employees
+    WHERE id = $1
+    `;
+    const response = await client.query(SQL, [req.params.id]);
+    res.sendStatus(204);
+  } catch (ex) {
+    next(ex)
+  }
+});
+
 // PUT /api/employees/:id - payload: the updated employee returns the updated employee
-// add an error handling route which returns an object with an error property.
+app.put('/api/employees/:id', async (req, res, next) => {
+  try {
+    const SQL = /*sql*/
+    `
+      UPDATE employees
+      SET name=$1, department_id=$2, updated_at= now()
+      WHERE id=$3 RETURNING *
+    `;
+    const response = await client.query(SQL, [
+      req.body.name,
+      req.body.department_id,
+      req.params.id
+    ]);
+    res.send(response.rows[0]);
+  } catch (ex) {
+    next(ex)
+  }
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: err.message });
+});
 
 // init function )create and run the express app)
 const init = async () => {
