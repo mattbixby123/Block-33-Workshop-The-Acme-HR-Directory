@@ -92,7 +92,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: err.message });
 });
 
-// init function )create and run the express app)
+// init function (create and run the express app)
 const init = async () => {
   await client.connect();
   console.log('connected  to db');
